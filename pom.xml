@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.governikus.autent</groupId>
+    <artifactId>maven-docker-plugin-issue-1439</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <developers>
+        <developer>
+            <id>knueppel</id>
+            <name>Pascal Knueppel</name>
+            <email>pascal.knueppel@governikus.de</email>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <customer.url>${env.CUSTOMER_URL}</customer.url>
+        <private.url>${env.PRIVATE_URL}</private.url>
+
+        <version.compiler.maven.plugin>3.8.1</version.compiler.maven.plugin>
+        <version.docker.maven.plugin>0.34.1</version.docker.maven.plugin>
+    </properties>
+
+    <dependencyManagement>
+
+    </dependencyManagement>
+
+    <dependencies>
+
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${version.compiler.maven.plugin}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>docker-image-to-customer-registry</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>io.fabric8</groupId>
+                            <artifactId>docker-maven-plugin</artifactId>
+                            <version>${version.docker.maven.plugin}</version>
+                            <executions>
+                                <execution>
+                                    <id>build-for-customer</id>
+                                    <phase>package</phase>
+                                    <goals>
+                                        <goal>build</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <verbose>true</verbose>
+                                <images>
+                                    <image>
+                                        <registry>${customer.url}</registry>
+                                        <name>customer/${project.artifactId}:${project.version}</name>
+                                        <build>
+                                            <contextDir>.</contextDir>
+                                            <assembly>
+                                                <mode>dir</mode>
+                                                <inline xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+                                                        xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+                                                    <files>
+                                                        <file>
+                                                            <source>
+                                                                target/${project.artifactId}.jar
+                                                            </source>
+                                                        </file>
+                                                    </files>
+                                                </inline>
+                                            </assembly>
+                                            <tags>
+                                                <tag>latest</tag>
+                                            </tags>
+                                        </build>
+                                    </image>
+                                </images>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+        <profile>
+            <id>docker-image-to-private-registry</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>io.fabric8</groupId>
+                            <artifactId>docker-maven-plugin</artifactId>
+                            <version>${version.docker.maven.plugin}</version>
+                            <executions>
+                                <execution>
+                                    <id>build-for-private</id>
+                                    <phase>package</phase>
+                                    <goals>
+                                        <goal>build</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <verbose>true</verbose>
+                                <images>
+                                    <image>
+                                        <registry>${private.url}</registry>
+                                        <name>private/${project.artifactId}:${project.version}</name>
+                                        <build>
+                                            <contextDir>.</contextDir>
+                                            <assembly>
+                                                <mode>dir</mode>
+                                                <inline xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+                                                        xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+                                                    <files>
+                                                        <file>
+                                                            <source>
+                                                                target/${project.artifactId}.jar
+                                                            </source>
+                                                        </file>
+                                                    </files>
+                                                </inline>
+                                            </assembly>
+                                            <tags>
+                                                <tag>latest</tag>
+                                            </tags>
+                                        </build>
+                                    </image>
+                                </images>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
+</project>
